@@ -121,7 +121,7 @@ sub expand_targets($;$) {
     my %seen;
     foreach (split(m/[\/ ]+/, $spec)) {
         my ($pfspec, $sdkspec) = split(m/[: ]+/, $_, 2);
-        my @pflist = ($pfspec ne 'all' && $pfspec ne 'all+') ? split(m/[, ]/, $pfspec) : ('arm', 'x86', 'arm64', 'armv5');
+        my @pflist = ($pfspec ne 'all' && $pfspec ne 'all+') ? split(m/[, ]/, $pfspec) : ('arm', 'x86', 'arm64', 'armv5' , 'x86_64');
         if ($pfspec eq 'all+') {
             push @pflist, 'host';
             push @pflist, 'hostd';
@@ -154,6 +154,11 @@ sub check_target_sdk_platform($$;$) {
     if ($platform eq 'armv5') {
         if ($sdk > 17) {
             print_error('ARMv5 builds are only supported up to Android 4.2 (SDK 17)') unless $wildcard;
+            return 0;
+        }
+    } elsif ($platform eq 'x86_64') {
+        if ($sdk < 21) {
+            print_error('x86_64 builds are not supported prior to Android 5.0 (SDK 21)') unless $wildcard;
             return 0;
         }
     } elsif ($platform eq 'arm64') {
@@ -226,7 +231,7 @@ sub get_outdir($) {
         return 'out/target/product/generic';
     } elsif ($platform eq 'armv5') {
         return 'out_armv5/target/product/generic';
-    } elsif ($platform eq 'x86' || $platform eq 'arm64') {
+    } elsif ($platform eq 'x86' || $platform eq 'arm64' || $platform eq 'x86_64') {
         return 'out/target/product/generic_' . $platform;
     } else {
         print_error("Could not determine output directory for $platform");
@@ -256,6 +261,8 @@ sub get_lunch_mode($$) {
         return ($sdk <= 17) ? 'full-eng' : 'aosp_arm-eng';
     } elsif ($platform eq 'x86') {
         return ($sdk <= 17) ? 'full_x86-eng' : 'aosp_x86-eng';
+    } elsif ($platform eq 'x86_64' && $sdk >= 21) {
+        return 'android_x86_64-userdebug';
     } elsif ($platform eq 'arm64' && $sdk >= 21) {
         return 'aosp_arm64-eng';
     } else {

@@ -271,7 +271,7 @@ sub get_compiled_files($$) {
             /system/bin/patchoat
         );
 
-        if ($platform eq 'arm64') {
+        if ($platform eq 'arm64' || $platform eq 'x86_64') {
             # libart-disassembler is required by oatdump only, which is a 64-bit executable
             delete $files{'/system/lib/libart-disassembler.so'};
 
